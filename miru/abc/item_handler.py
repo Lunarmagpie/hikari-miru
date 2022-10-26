@@ -305,12 +305,6 @@ class ItemHandler(Sequence, abc.ABC, t.Generic[T]):  # type: ignore[type-arg]
         Process incoming interactions.
         """
 
-    @abc.abstractmethod
-    async def _listen_for_events(self) -> None:
-        """
-        Listen for incoming interaction events through the gateway.
-        """
-
     async def _handle_timeout(self) -> None:
         """
         Handle the timing out of the view.
