@@ -5,6 +5,7 @@ import copy
 import datetime
 import inspect
 import logging
+import hashlib
 import sys
 import traceback
 import typing as t
@@ -37,6 +38,11 @@ class View(ItemHandler[hikari.impl.ActionRowBuilder]):
     autodefer : bool, optional
         If unhandled interactions should be automatically deferred or not, by default True
 
+    Subclass Parameters
+    ---------------
+    persistent : bool, False
+        If True, this View will be persistent.
+
     Raises
     ------
     ValueError
@@ -51,7 +57,7 @@ class View(ItemHandler[hikari.impl.ActionRowBuilder]):
         int, View
     ] = {}  # List of all currently active BOUND views, unbound persistent are not listed here
 
-    def __init_subclass__(cls) -> None:
+    def __init_subclass__(cls, persistent: bool = False) -> None:
         """
         Get decorated callbacks
         """
@@ -65,6 +71,14 @@ class View(ItemHandler[hikari.impl.ActionRowBuilder]):
             raise HandlerFullError("View cannot have more than 25 components attached.")
 
         cls._view_children = children
+
+        if not persistent:
+            return
+
+        for child in cls._view_children:
+            child.item.custom_id = hashlib.md5(
+                f"{cls.__module__}:{child.callback.__name__}:{cls.__name__}".encode("utf-8")
+            ).hexdigest()
 
     def __init__(
         self,
